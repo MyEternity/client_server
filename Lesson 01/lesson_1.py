@@ -16,8 +16,6 @@
 import subprocess
 
 import chardet
-from chardet import detect
-
 
 print('---- Start task 01 ----')
 words_u = \
@@ -38,6 +36,7 @@ for x in range(0, len(words_u)):
 
 print(' ')
 print('---- Start task 02 ----')
+
 words_b = [b'class', b'function', b'method']
 for x in range(0, len(words_b)):
     print(f'Type is: {type(words_b[x])}, len: {len(words_b[x])} (original data: {words_b[x]})')
@@ -68,14 +67,25 @@ for x in ping.stdout:
     dec = chardet.detect(x)
     print(x.decode(dec['encoding']).rstrip())
 
-
 print(' ')
 print('---- Start task 06 ----')
 
-with open('test_file.txt', 'rb') as f:
-    try:
+
+def get_file_enc(file_name='test_file.txt'):
+    with open('test_file.txt', 'rb') as f:
         b = f.read()
         dec = chardet.detect(b)
-        print(b.decode(dec['encoding']))
-    except:
-        print('Error reading file.')
+        return dec['encoding']
+
+
+def convert_file(file_name='test_file.txt', file_name_out='test_file_out.txt'):
+    enc = get_file_enc(file_name)
+    with open(file_name, 'rb') as f_in:
+        data = f_in.read().decode(enc)
+    with open(file_name_out, 'w', encoding='utf-8') as f_out:
+        f_out.write(data)
+
+
+convert_file()
+with open('test_file_out.txt', 'r', encoding='utf-8') as f:
+    print(f.read())
