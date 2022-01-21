@@ -36,3 +36,51 @@ os_code_list, os_type_list. В этой же функции создать гл�
 
 ПРОШУ ВАС НЕ УДАЛЯТЬ СЛУЖЕБНЫЕ ФАЙЛЫ TXT И ИТОГОВЫЙ ФАЙЛ CSV!!!
 """
+import csv
+import re
+
+
+def get_value_regexp(template='', buffer=''):
+    data = re.compile(r''+template+'')
+    result = data.findall(buffer)
+    if len(str(result[0]).split()) > 2:
+        return str(result[0]).split()[2].rstrip().lstrip()
+    else:
+        return str(result[0]).rstrip().lstrip()
+
+
+def get_data():
+    ls_main = []
+    ls_hdr = ['Изготовитель системы', 'Windows', 'Код продукта', 'Тип системы']
+    ls_prd = []
+    ls_wnd = []
+    ls_prc = []
+    ls_ost = []
+    file_list = ['info_1.txt', 'info_2.txt', 'info_3.txt']
+    ls_main.append(ls_hdr)
+    for file in file_list:
+        with open(file, 'r', encoding='utf-8') as fr:
+            buffer = fr.read()
+            ls_prd.append(get_value_regexp('Изготовитель системы:\s*\S*', buffer))
+            ls_wnd.append(get_value_regexp('Windows\s\S*', buffer))
+            ls_prc.append(get_value_regexp('Код продукта:\s*\S*', buffer))
+            ls_ost.append(get_value_regexp('Тип системы:\s*\S*', buffer))
+    for r in range(0, len(ls_hdr)-1):
+        line = []
+        line.append(ls_prd[r])
+        line.append(ls_wnd[r])
+        line.append(ls_prc[r])
+        line.append(ls_ost[r])
+        ls_main.append(line)
+    return ls_main
+
+
+def write_to_csv(file_name = 'main_data'):
+    with open(file_name, 'w', encoding='utf-8') as f:
+        #file = csv.writer(f, quoting=csv.QUOTE_NONNUMERIC)
+        file = csv.writer(f)
+        for row in get_data():
+            file.writerow(row)
+
+
+write_to_csv('data_report.csv')
