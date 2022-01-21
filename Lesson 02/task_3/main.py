@@ -19,25 +19,29 @@ ASCII(например, €);
 совпадают ли они с исходными.
 """
 
+import yaml
 
 
+def write_yaml_data(file_name='file.yaml', data={}):
+    with open(file_name, 'w', encoding='utf-8') as f:
+        yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
 
 
+def read_yaml_data(file_name='file.yaml'):
+    with open(file_name, 'r', encoding='utf-8') as f:
+        return yaml.load(f, Loader=yaml.SafeLoader)
 
 
+w_dct = {'greetings': ['Привет', 'Ку', 'Хай ©', 'Дарова!'],
+         'age': 18,
+         'metrics': {'work_name': 'Компания®',
+                     'school_name': 'Школа №116'
+                     }
+         }
 
-
-
-
-
-
-import socket
-
-obj_sock = socket.socket()
-
-# bytes ->
-obj_sock.sendto(var, ())
-
-#close
-
-клиент 1) 2)
+write_yaml_data('file.yaml', w_dct)
+r_dct = read_yaml_data()
+if w_dct == r_dct:
+    print('Данные совпадают!')
+else:
+    print('Данные различаются!')
