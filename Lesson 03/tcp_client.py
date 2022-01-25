@@ -1,4 +1,4 @@
 from core import JIMClient
 
 c = JIMClient()
-c.send_greeting()
+c.send_presence()
