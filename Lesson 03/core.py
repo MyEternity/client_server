@@ -1,6 +1,7 @@
 import datetime
 import json
 import socket
+
 from jsonschema import validate
 
 
@@ -18,6 +19,10 @@ class SocketWrapper:
                 self._socket.connect((self.read_settings('default_ip_address'), self.read_settings('default_port')))
         except Exception as E:
             print(f'Ошибка инициализации сокета: {E}')
+
+    @property
+    def jim_proto(self):
+        return self._jim_decl
 
     @property
     def wrapped_socket(self):
@@ -45,15 +50,18 @@ class SocketWrapper:
 
     def response_template(self, code):
         responce_templates = {
-            200: {self._jim_decl['responce']: 200},
-            400: {self._jim_decl['response']: 400, 'error': self._jim_decl['error']},
+            200: {self.jim_proto['response']: 200},
+            400: {self.jim_proto['response']: 400, 'error': self.jim_proto['error']},
         }
         return responce_templates[code]
 
-    def send_msg(self, data):
+    def send_msg(self, data, client_socket=None):
         data['time'] = datetime.datetime.timestamp(datetime.datetime.now())
         buffer = json.dumps(data).encode(self.read_settings('encoding'))
-        self._socket.send(buffer)
+        if not client_socket:
+            self.wrapped_socket.send(buffer)
+        else:
+            client_socket.send(buffer)
 
 
 class JIMServer(SocketWrapper):
@@ -64,12 +72,11 @@ class JIMServer(SocketWrapper):
         in_greeting = {"action": "string", "time": "float", "user": {"account_name": "string"}}
         try:
             validate(msg, schema=in_greeting)
-            if msg['user']['account_name'] == "Guest":
+            if msg['user']['account_name'] == "Guest" and msg['action'] == self.jim_proto['presence']:
                 return self.response_template(200)
         except:
             return self.response_template(400)
         return self.response_template(400)
-
 
     def run_server(self):
         while True:
@@ -78,7 +85,9 @@ class JIMServer(SocketWrapper):
                 msg = self.recv_msg(client)
                 print(f'Recieved RAW message: {msg}')
                 reply = self.process_income_message(msg)
-                self.send_msg(reply)
+                self.send_msg(data=reply, client_socket=client)
+                print(f'Sent message {reply} to client: {client_address}')
+                client.close()
             except Exception as E:
                 print(f'Recieved error data: {E}')
                 client.close()
@@ -91,7 +100,7 @@ class JIMClient(SocketWrapper):
 
     def send_presence(self):
         self.send_msg(
-            {'action': self.read_settings('jim.presence'), 'time': 0, 'user': {'account_name': self._account_name}})
+            {'action': self.jim_proto['presence'], 'time': 0, 'user': {'account_name': self._account_name}})
         try:
             reply = self.recv_msg(self.wrapped_socket)
             print(f'Recieved reply data: {reply}')
