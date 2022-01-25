@@ -1,6 +1,6 @@
 import json
 import socket
-
+import datetime, time
 
 class SocketWrapper():
 
@@ -41,6 +41,7 @@ class SocketWrapper():
             return {}
 
     def send_msg(self, data):
+        data['time'] = datetime.datetime.timestamp(datetime.datetime.now())
         buffer = json.dumps(data).encode(self.read_settings('encoding'))
         self._socket.send(buffer)
 
@@ -51,5 +52,9 @@ class JIMServer(SocketWrapper):
 
 
 class JIMClient(SocketWrapper):
-    def __init__(self):
+    def __init__(self, account_name='Guest'):
+        self._account_name = account_name
         super().__init__(server_mode=False)
+
+    def send_presence(self):
+        self.send_msg({'action': 'presence', 'time': 0, 'user': {'account_name': self._account_name}})
