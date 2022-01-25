@@ -29,8 +29,8 @@ class SocketWrapper():
         except:
             return None
 
-    def recv_msg(self, client):
-        buffer = client.recv(self.read_settings('max_package_length'))
+    def recv_msg(self, new_socket):
+        buffer = new_socket.recv(self.read_settings('max_package_length'))
         try:
             if isinstance(buffer, bytes):
                 json_data = json.loads(buffer.decode(self.read_settings('encoding')))
