@@ -1,6 +1,5 @@
 from core import JIMServer
 
-
 c = JIMServer()
 while True:
     client, client_address = c.socket.accept()

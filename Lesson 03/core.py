@@ -1,6 +1,5 @@
 import json
 import socket
-from abc import ABC
 
 
 class SocketWrapper():
