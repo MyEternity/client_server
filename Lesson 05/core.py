@@ -13,6 +13,7 @@ class SocketWrapper:
         self._mode = server_mode
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._jim_decl = self.read_settings('jim')
+        self._connected = True
         try:
             if self._mode:
                 self._log = Log('tcp_server.log').get_logger
@@ -24,11 +25,16 @@ class SocketWrapper:
                 self._socket.connect((self.read_settings('default_ip_address'), self.read_settings('default_port')))
                 self.log.debug(f'Инициализация обертки клиента: {self._socket}')
         except Exception as E:
+            self._connected = False
             self.log.error(f'Ошибка инициализации обертки: {E}')
 
     @property
     def log(self):
         return self._log
+
+    @property
+    def connected(self):
+        return self._connected
 
     @property
     def jim_proto(self):
@@ -81,7 +87,7 @@ class SocketWrapper:
 class JIMServer(SocketWrapper):
     def __init__(self):
         super().__init__(server_mode=True)
-        self.log.info(f'Запуск сервера')
+        self.log.info(f'Запуск модуля сервера.')
 
     def process_income_message(self, msg):
         in_greeting = {"action": "string", "time": "float", "user": {"account_name": "string"}}
@@ -112,13 +118,16 @@ class JIMClient(SocketWrapper):
     def __init__(self, account_name='Guest'):
         self._account_name = account_name
         super().__init__(server_mode=False)
-        self.log.info(f'Запуск клиента')
+        self.log.info(f'Запуск модуля клиента.')
 
     def send_presence(self):
-        self.send_msg(
-            {'action': self.jim_proto['presence'], 'time': 0, 'user': {'account_name': self._account_name}})
-        try:
-            reply = self.recv_msg(self.wrapped_socket)
-            self.log.info(f'Принято сообщение от сервера: {reply}')
-        except Exception as E:
-            self.log.error(f'Данные получены с ошибкой: {E}')
+        if self.connected:
+            self.send_msg(
+                {'action': self.jim_proto['presence'], 'time': 0, 'user': {'account_name': self._account_name}})
+            try:
+                reply = self.recv_msg(self.wrapped_socket)
+                self.log.info(f'Принято сообщение от сервера: {reply}')
+            except Exception as E:
+                self.log.error(f'Данные получены с ошибкой: {E}')
+        else:
+            self.log.warn(f'Нет подключения к серверу.')
