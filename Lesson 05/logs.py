@@ -8,13 +8,14 @@ _log_format = f"%(asctime)24s - [%(levelname)s] - %(name)s - (%(filename)s).%(fu
 
 
 class Log:
-    def __init__(self, file_name='', module_name='default'):
+    def __init__(self, file_name='', module_name='default', rotate_daily=False):
         self._file_name = file_name
 
         self._file_handler = logging.FileHandler(self._file_name)
         self._file_handler.setLevel(logging.DEBUG)
-        self._file_handler = logging.handlers.TimedRotatingFileHandler(os.path.abspath(self._file_name),
-                                                                       encoding='utf8', interval=1, when='D')
+        if rotate_daily:
+            self._file_handler = logging.handlers.TimedRotatingFileHandler(os.path.abspath(self._file_name),
+                                                                           encoding='utf8', interval=1, when='D')
         self._file_handler.setFormatter(logging.Formatter(_log_format))
 
         self._stream_handler = logging.StreamHandler(sys.stdout)

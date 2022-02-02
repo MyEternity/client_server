@@ -16,7 +16,7 @@ class SocketWrapper:
         self._connected = True
         try:
             if self._mode:
-                self._log = Log('tcp_server.log').get_logger
+                self._log = Log(file_name='tcp_server.log', rotate_daily=True).get_logger
                 self._socket.bind((self.read_settings('listen_address'), self.read_settings('default_port')))
                 self._socket.listen(self.read_settings('max_connections'))
                 self.log.debug(f'Инициализация обертки сервера: {self._socket}')
